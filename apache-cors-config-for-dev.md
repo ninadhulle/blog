@@ -5,7 +5,7 @@ We are currently doing development in Angular and we have lot of services consum
 * node js
 * npm
 
-Since vs code is built in Javascript, we were seeing very high CPU consumption around 90% or more. This is because vs code was consuming huge amount of CPU performance during typescript compilation of npm start. Other major contributor to CPU utilization was that we had around 4-6 common rest services which developer would run on machine any time in order for our Angular application to work. This common services for authentication, logging, concurrency, etc were run in either jetty or tomcat maven plugin. This again increased lot of CPU for the developer, essentially slowing their machines so much so that, it started impacting productivity. For simple single line code fix, sometime a developer would take 15-30 mins to test on local machine.
+Since vs code is built in Javascript, we were seeing very high CPU consumption around 90% or more. This is because vs code was consuming huge amount of CPU performance during typescript compilation of npm start. Other major contributor to CPU utilization was that we had around 4-6 common rest services which developer would run on machine any time in order for our Angular application to work. This common services for authentication, logging, concurrency, etc were run in either jetty or tomcat maven plugin. These again increased lot of CPU for the developer, essentially slowing their machines so much so that, it started impacting productivity. For simple single line code fix, sometime a developer would take 15-30 mins to test on local machine.
 
 In order our development environment we deploy all our common java rest apis on a JBoss service. And our Angular application is hosted on Apache Httpd web server. We have setup reverse proxies for all our common apis on Apache Httpd service. 
 
@@ -34,7 +34,7 @@ Above headers specify below.
 ```
 Above final configuration was hack to let respond to browsers CORS requests. Browsers call the services twice, first to do kind of handshake for CORS where server informs what headers are allowed, etc. Above modification tells that send 200 when browser requests for CORS details from Apache httpd for OPTIONS header.
 
-This small hack helped developers where we no longer needed to run services in jetty or tomcat maven plugins on our local machines and also reduced the CPU consumed by these services, freeing precious CPU cycles.
+This small hack helped developers where we no longer needed to run services in jetty or tomcat maven plugins on our local machines and this also reduced the CPU consumed by these services, freeing precious CPU cycles.
 
 We could have upgraded the processors for developers but this seemed cheaper. :-)
  
