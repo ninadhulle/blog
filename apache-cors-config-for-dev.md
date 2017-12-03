@@ -1,4 +1,4 @@
-#H3 Apache CORS configuration for Angular development
+### H3 Apache CORS configuration for Angular development
 
 We are currently doing development in Angular and we have lot of services consumed by our Angular application. Our development environment for Angular consists of
 * Visual Studio Code editor(vs code)
@@ -34,5 +34,7 @@ Above headers specify below.
 ```
 Above final configuration was hack to let respond to browsers CORS requests. Browsers call the services twice, first to do kind of handshake for CORS where server informs what headers are allowed, etc. Above modification tells that send 200 when browser requests for CORS details from Apache httpd for OPTIONS header.
 
-This small hack helped developers where we no longer needed to run services in jetty or tomcat maven plugins on our local machines and also reduced the CPU consumed by these services, freeing 
+This small hack helped developers where we no longer needed to run services in jetty or tomcat maven plugins on our local machines and also reduced the CPU consumed by these services, freeing precious CPU cycles.
+
+We could have upgraded the processors for developers but this seemed cheaper. :-)
  
