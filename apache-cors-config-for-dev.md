@@ -1,4 +1,4 @@
-### H3 Apache CORS configuration for Angular development
+### Apache CORS configuration for Angular development
 
 We are currently doing development in Angular and we have lot of services consumed by our Angular application. Our development environment for Angular consists of
 * Visual Studio Code editor(vs code)
