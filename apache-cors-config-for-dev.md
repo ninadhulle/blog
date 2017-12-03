@@ -32,7 +32,7 @@ Above headers specify below.
     RewriteCond %{REQUEST_METHOD} OPTIONS
     RewriteRule ^(.*)$ $1 [R=200,L]
 ```
-Above final configuration was hack to let respond to browsers CORS requests. Browsers call the services twice, first to do kind of handshake for CORS where server informs what headers are allowed, etc. Above modification tells that send 200 when browser requests for CORS details from Apache httpd for OPTIONS header.
+Above final configuration was hack to let respond to browsers [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) requests. Browsers call the services twice, first to do kind of handshake for CORS where server informs what headers are allowed, etc. Above modification tells that send 200 when browser requests for CORS details from Apache httpd for OPTIONS header.
 
 This small hack helped developers where we no longer needed to run services in jetty or tomcat maven plugins on our local machines and this also reduced the CPU consumed by these services, freeing precious CPU cycles.
 
