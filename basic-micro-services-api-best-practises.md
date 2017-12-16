@@ -13,8 +13,8 @@ Eg. GET /owners/1/dogs or DELETE /owners/1/dogs/2
 *	Feel free to use optional parameters generously
 Eg. GET /dogs?breed=husky&color=black
 *	Search:
-  * Global search format should be GET /search?question=white+husky
-  *	Scoped search, endpoint should expose - GET /owners/1/dogs?breed=husky&color=black
+   1. Global search format should be GET /search?question=white+husky
+   2.	Scoped search, endpoint should expose - GET /owners/1/dogs?breed=husky&color=black
 *	By default your api’s should return json and if you want to return xml, doc or something, don’t change the endpoint, use content-type. 
 *	For pagination use parameter like GET /search?question=white+husky&start=50&count=50. Don’t return huge amount of data if it is not required.
 Below are common error codes and applicable scenarios
