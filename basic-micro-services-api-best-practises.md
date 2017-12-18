@@ -1,4 +1,4 @@
-Our team is building micro services using OSS stack. Below are some common conventions regarding https status code which were following:
+Our team is building micro services. Below are some common conventions regarding https status code which were following:
 
 *	Use nouns for api endpoints – why? – generally convention is to use verbs for method names. But for api endpoints, the http verbs (GET, POST, PUT, DELETE) are used, so we just need endpoints with nouns. Eg. /dogs or /cats and not /getDogs or not /getCats.
 *	Below table details out the general convention for api endpoint naming. Single api endpoint will support CRUD operations (Create, Read, Update, Delete).
@@ -27,6 +27,6 @@ Error Code  | Http Code description   | Operations
 400	| Bad request	| For all PUT/DELETE/POST, if service validation fails. Return custom header with description as what input validation fails.
 404	| Not found	| For below operations <br>* GET /search or GET /dogs <br>* PUT /dogs <br>* DELETE /dogs
 304	| Not modified	| <br>* PUT /dogs
-409	| Conflict |	Request is already locked, or is being edited <br>* PUT /dogs <br>* DELETE /dogs
-412	| Precondition failed	| For below operations, if lock is not acquired <br>* PUT /dogs <br>* DELETE /dogs
+409	| Conflict |	If data already exists, etc. <br>* PUT /dogs
+412	| Precondition failed	| For below operations, if some business validation fails <br>* PUT /dogs <br>* DELETE /dogs
 500	| Internal Error | If api catches exception and throws 500, then it should return 500 with Custom Description in header
