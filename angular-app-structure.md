@@ -9,20 +9,44 @@ eg.
     |__functionality2 (this is root menut items)
 ```
 2. Your app-routing.module.ts should only have root level menus.
+  
 ```typescript
-  const routes: Routes = [
-  {
-    path: '', canActivate: [AuthGuard], canActivateChild: [RoleGuard], component: HomeComponent,
+  const routes: Routes = [{
+    path: '', 
+    canActivate: [AuthGuard], 
+    canActivateChild: [RoleGuard], 
+    component: HomeComponent,
     children: [
-      { path: 'Domain Menu 1', loadChildren: 'app/domain1/domain1.module#Domain1Module' },
-      { path: 'Domain Menu 2', loadChildren: 'app/domain2/domain2.module#Domain2Module' },
-      { path: 'Domain Menu 3', loadChildren: 'app/domain3/domain3.module#Domain3Module' },
-    ]
-  }
-];
+    { 
+      path: 'Domain Menu 1', 
+      loadChildren: 'app/domain1/domain1.module#Domain1Module' 
+    },
+    { 
+      path: 'Domain Menu 2', 
+      loadChildren: 'app/domain2/domain2.module#Domain2Module' 
+    }]
+  }];
 ```  
+  
 3. Each <domain>-routing.module.ts should have sub-menus. This will use the lazy loading feature of Angular. Don’t add sub menu entries 
-to app-routing.module.ts
+to app-routing.module.ts.
+  
+```typescript
+  const DOMAIN1_ROUTER: Routes = [{ 
+    path: '', 
+    component: Domain1Component 
+  },{ 
+    path: 'domain1/sub1-menu1', 
+    canActivate: [Domain1Guard], 
+    component: Sub1Domain1Component, 
+    canDeactivate: [DomainDeactivateGuard] 
+  },{ 
+    path: 'domain1/sub1-menu1', 
+    canActivate: [Domain1Guard], 
+    component: Sub1Domain1Component, 
+    canDeactivate: [DomainDeactivateGuard] 
+  }];
+```  
 4. Create authentication and authorization guards using Angular guard feature.
 5. Use Authentication guards on routes like home/error on your canactivate.
 6. Decorate root level menus within app-routing.module.ts with on your canactivate and in child <domain>-routing.module.ts.
