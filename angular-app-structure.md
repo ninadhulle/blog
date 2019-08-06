@@ -8,7 +8,7 @@ eg.
     |__functionality1 (this is root menu item)
     |__functionality2 (this is root menut items)
 ```
-2. Your app-routing.module.ts should only have root level menus.
+2. Your app-routing.module.ts should only have root level menus. This also enables default lazy loading strategy of Angular.
   
 ```typescript
   const routes: Routes = [{
@@ -50,6 +50,65 @@ to app-routing.module.ts.
 
 ```  
 4. Create authentication and authorization guards using Angular guard feature.
+Below is sample code for Authentication Guard
+```typescript
+@Injectable()
+export class AuthGuard implements CanActivate {
+
+  constructor(
+    private securityInitService: SecurityInitService,
+    private userService: UserService,
+    private router: Router
+  ) { }
+
+  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
+    return this.securityInitService.authenticationComplete.map(e => {
+        if (e === 'SUCCESS' && this.userService.getLoggedInStatus())
+            return true;
+    }).catch(() => {
+         this.router.navigate(['error-401']);
+         return Observable.of(false);
+    });
+  }
+}
+```
+Below is sample code for Authorization Guard
+```typescript
+@Injectable()
+export class RoleGuard implements CanActivate, CanActivateChild {
+    menuItems: any;
+    route: ActivatedRouteSnapshot;
+    state: RouterStateSnapshot;
+
+    constructor(
+        private securityInitService: SecurityInitService,
+        private userService: UserService,
+        private router: Router,
+        private loggerService: LoggerService,
+        private MenuService: NavigationService
+    ) { }
+
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
+      const browserUrl: string = state.url;
+      this.route = route;
+      this.state = state;
+
+      return this.securityInitService.authenticationComplete.map(e => {
+        if (e) {
+          if (e === 'SUCCESS' && this.userService.getLoggedInStatus()) {
+          }
+        }
+      }).catch(() => {
+        this.router.navigate(['error-403']);
+        return Observable.of(false);
+      });
+    }
+    
+    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
+      return this.canActivate(route, state);
+    }
+    
+```
 5. Use Authentication guards on routes like home/error on your canactivate.
 6. Decorate root level menus within app-routing.module.ts with on your canactivate and in child <domain>-routing.module.ts.
 7. Don’t make module huge. If you have lot of sub menus and menus – please split it up with sub-modules.
