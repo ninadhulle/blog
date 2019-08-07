@@ -8,13 +8,12 @@ eg.
     |__functionality1 (this is root menu item)
     |__functionality2 (this is root menut items)
 ```
+Don’t make module huge. If you have lot of sub menus and menus – please split it up with sub-modules.
 2. Your app-routing.module.ts should only have root level menus. This also enables default lazy loading strategy of Angular.
   
 ```typescript
   const routes: Routes = [{
     path: '', 
-    canActivate: [AuthGuard], 
-    canActivateChild: [RoleGuard], 
     component: HomeComponent,
     children: [
     { 
@@ -38,15 +37,11 @@ to app-routing.module.ts.
     component: Domain1Component 
   },{ 
     path: 'domain-menu-1/sub1-menu1', 
-    canActivate: [Domain1Guard], 
-    component: Sub1Domain1Component, 
-    canDeactivate: [DomainDeactivateGuard] 
-  },{ 
+    component: Sub1Domain1Component
+    },{ 
     path: 'domain-menu-2/sub1-menu1', 
-    canActivate: [Domain1Guard], 
-    component: Sub1Domain1Component, 
-    canDeactivate: [DomainDeactivateGuard] 
-  }];
+    component: Sub1Domain1Component 
+ }];
 
 ```  
 4. Create authentication and authorization guards using Angular guard feature.
@@ -109,9 +104,27 @@ export class RoleGuard implements CanActivate, CanActivateChild {
     }
     
 ```
-5. Use Authentication guards on routes like home/error on your canactivate.
-6. Decorate root level menus within app-routing.module.ts with on your canactivate and in child <domain>-routing.module.ts.
-7. Don’t make module huge. If you have lot of sub menus and menus – please split it up with sub-modules.
+5. Use authentication guards on default route canactivate, this ensures that all routes are authenticated using guard. Use authorization guards to ensure child routes have the necessary roles.
+```typescript
+  const routes: Routes = [{
+    path: '', 
+    canActivate: [AuthenticationGuard], 
+    canActivateChild: [AuthorizationGuard], 
+    component: HomeComponent,
+    children: [];
+```  
+6. Optionally decorate routes within each domain module (in <domain>-routing.module.ts) with guards specific to handle activation/deactivation.
+```typescript
+  const DOMAIN1_ROUTER: Routes = [{ 
+    path: '', 
+    component: Domain1Component 
+  },{ 
+    path: 'domain-menu-1/sub1-menu1', 
+    canActivate: [Domain1Guard], 
+    component: Sub1Domain1Component, 
+    canDeactivate: [Domain1DeactivateGuard] 
+  }];
+``` 
 8. Shared Module – All common components should go to shared module. These should include new shared components, directives, pipes, 
 validators.
 9.Logs – Feel free to add tons of console.logs to your code. These can be removed for production as a part of build process.
