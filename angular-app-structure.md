@@ -127,8 +127,23 @@ export class RoleGuard implements CanActivate, CanActivateChild {
 ``` 
 8. Shared Module – All common components should go to shared module. These should include new shared components, directives, pipes, 
 validators.
-9.Logs – Feel free to add tons of console.logs to your code. These can be removed for production as a part of build process.
-12. Use UI library like PrimeNG/Material UI. And also Bootstrap.
+9. Create logging component to log to server side in case of unhandled exception.
+```typescript
+  export class GlobalErrorHandlerService extends ErrorHandler {
+
+  constructor(
+    private loggingService: LoggerService,
+    private errorService: ErrorService
+  ) {
+    //super(false);
+    super();
+  }
+
+  handleError(error): void {
+    
+  }
+```  
+10. Logs – Feel free to add tons of console.logs to your code. These can be removed for production as a part of build process.
 11. Create BaseComponent which you your components inherit fromExtend all business(not the shared ones) components from baseComponent. 
 This injects 
   * GrowlService - For error message display on top right hand side
