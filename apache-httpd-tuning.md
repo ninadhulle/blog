@@ -42,8 +42,8 @@ LogLevel warn
 ErrorLog "|/usr/sbin/rotatelogs -t /app-name/logs/error-log 604800"
 #purge the logs in 7 days = 60*60*24*7
 SetEnvIf Cookie "(^|;\ *)jwt=([^;\ ]+)" jwt-value=$2
-SetEnvIf access-token-value ".{5}$" jwt-last-5=$0
-LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{user-agent}i\" \"user-id:\" \"%{user-id}i\" \"message-id:\" \"%{message-id}i\" \"browser-id:\" \"%{browser-id}i\" \"jwt:\" \"%{jwt-last-5}e\" %T %D" app-log-format
+SetEnvIf jwt-value ".{5}$" jwt-last-5=$0
+LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{user-agent}i\" \"user-id:\" \"%{user-id}i\" \"message-id:\" \"%{co-rel-id}i\" \"browser-id:\" \"%{browser-id}i\" \"jwt:\" \"%{jwt-last-5}e\" %T %D" app-log-format
 CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-format
 ```
 5. Utilize mod_gzip/mod_deflate
