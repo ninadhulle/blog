@@ -1,7 +1,7 @@
-### Apache Httpd 2.4 Optimizations for Angular ######
+### Apache Httpd 2.4 Performance Optimizations for Angular ######
 We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angular](https://angular.io/) application in production. Below are few of common Httpd tuning options which we had done for production.
 
-1. Remove unused modules and load only the required minimum modules
+1. **Modules:** Remove unused modules and load only the required minimum modules
 ```
 LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
 LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
@@ -22,7 +22,7 @@ LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
 LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
 LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
 ```
-2. Setup appropriate Expires, Etag, and Cache-Control Headers
+2. **Compression:** Setup appropriate Expires, Etag, and Cache-Control Headers
 ```
 SetOutputFilter DEFLATE
 SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|iso|tar|bz2|sit|rar|png|jpg|gif|jpeg|flv|swf|mp3)$ no-gzip dont-vary
@@ -34,7 +34,7 @@ FileETag None
 ServerTokens Prod
 ServerSignature Off
 ```
-3. Caching, our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching. But for content heavy application it is recommended to use Content Delivery Network (CDN).
+3. **Caching:** Our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching. But for content heavy application it is recommended to use Content Delivery Network (CDN).
 4. We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose.
 ```
 LogLevel warn
@@ -46,11 +46,8 @@ SetEnvIf jwt-value ".{5}$" jwt-last-5=$0
 LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{user-agent}i\" \"user-id:\" \"%{user-id}i\" \"message-id:\" \"%{co-rel-id}i\" \"browser-id:\" \"%{browser-id}i\" \"jwt:\" \"%{jwt-last-5}e\" %T %D" app-log-format
 CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-format
 ```
-5. Utilize mod_gzip/mod_deflate
-6. Default event mutli processing module used - this keepsalive connection and keeps some connections to idle state to server requests faster
-7. Increase - ulimit size 4096 - I guess default is 10000 on RHEL 7.5 at CVS, this can be increased by talking to Unix Admins
-8. Reverse proxy algorithm - by least busy connection
-9. As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. We use below configuration. 
+5. **Multi Processing Module:** As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. Event MPM keepsalive connection and keeps some connections to idle state to server requests faster.
+We use below configuration. 
 ```
  <IfModule mpm_event_module>
     ServerLimit         16
@@ -62,15 +59,18 @@ CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-fo
  </IfModule>
 
 ```
-Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate the requests and identify the details
+Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate the requests and get the metrics.
 ```
 ab -k -c 1000 -n 8000 https://<server>:<port>
 ```
 -k keeps alive the connection similar to browser
 -c concurrent connection
 -n max# of connections
-10. Linux - increase write buffer size (not sure how much) - /proc/sys/net/core/wmem_max
-11. Linux - increase swapiness (not sure how much) - /proc/sys/vm/swappiness
+6. **Reverse proxy load balancer:** Algorithm - by least busy connection
+7. **Linux OS Optimizations:** We use RHEL 7.5 and below are few optimizations we did to further improve performance.
+ * Increase - ulimit size 4096 - I guess default is 10000 on RHEL 7.5 at CVS, this can be increased by talking to Unix Admins
+ * Increase write buffer size (not sure how much) - /proc/sys/net/core/wmem_max
+ * Increase swapiness (not sure how much) - /proc/sys/vm/swappiness
 
 
 ### Security Optimizations ######
