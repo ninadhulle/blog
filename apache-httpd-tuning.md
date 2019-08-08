@@ -1,4 +1,4 @@
-###Optimizations done
+### Optimizations done ######
 1. Remove unused modules
 2. Setup appropriate Expires, Etag, and Cache-Control Headers
 3. Put Cache on separate disk - No caching used
@@ -8,12 +8,12 @@
 7. Increase - ulimit size 4096 - I guess default is 10000 on RHEL 7.5 at CVS, this can be increased by talking to Unix Admins
 8. Reverse proxy algorithm - by least busy connection
 
-###Security Optimizations done
+### Security Optimizations done  ######
 1. Mod headers security tuning
 2. Only specific file types served
 3. TLS 1.2
 
-###Potential tune ups
+### Potential tune ups  ######
 1. Tune mpm event module through PT or jmeter or Apache Workbench 
 ```
 <IfModule mpm_event_module>
