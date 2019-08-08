@@ -1,16 +1,20 @@
 ### Optimizations done ######
 1. Remove unused modules and load only the required minimum modules
 ```
-LoadModule rewrite_module modules/mod_rewrite.so
-LoadModule headers_module modules/mod_headers.so
-LoadModule reqtimeout_module modules/mod_reqtimeout.so
-LoadModule proxy_module modules/mod_proxy.so
-LoadModule lbmethod_bybusyness_module modules/mod_lbmethod_bybusyness.so
-LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
 LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
 LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
+LoadModule lbmethod_bybusyness_module modules/mod_lbmethod_bybusyness.so
+LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+
 LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
+LoadModule proxy_module modules/mod_proxy.so
+
+LoadModule reqtimeout_module modules/mod_reqtimeout.so
+
+LoadModule rewrite_module modules/mod_rewrite.so
+LoadModule headers_module modules/mod_headers.so
+
 LoadModule slotmem_plain_module modules/mod_slotmem_plain.so
 LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
 LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
@@ -21,6 +25,12 @@ LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
 SetOutputFilter DEFLATE
 SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|iso|tar|bz2|sit|rar|png|jpg|gif|jpeg|flv|swf|mp3)$ no-gzip dont-vary
 DeflateCompressionLevel 9
+
+TraceEnable Off
+Header unset ETag
+FileETag None
+ServerTokens Prod
+ServerSignature Off
 ```
 3. Caching, our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching. But for content heavy application it is recommended to use Content Delivery Network (CDN).
 4. We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose.
@@ -40,7 +50,18 @@ CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-fo
 8. Reverse proxy algorithm - by least busy connection
 
 ### Security Optimizations done  ######
-1. Mod headers security tuning
+1. Below are some of http security headers which we have tuned. For more information (check this link)[https://nullsweep.com/http-security-headers-a-complete-guide/]
+```
+<IfModule mod_headers.c>
+Header set X-XSS-Protection "1; mode=block"
+Header always append X-Frame-Options SAMEORIGIN
+Header set X-Content-Type-Options: nosniff
+Header set X-Content-Security-Policy "script-src 'self'; object-src 'self'"
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+Header edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure
+</IfModule>
+
+```
 2. Only specific file types served
 3. TLS 1.2
 
