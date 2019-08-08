@@ -1,4 +1,6 @@
-### Optimizations done ######
+### Apache Httpd 2.4 Optimizations for Angular ######
+We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angular](https://angular.io/) application in production. Below are few of common Httpd tuning options which we had done for production.
+
 1. Remove unused modules and load only the required minimum modules
 ```
 LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
@@ -48,8 +50,30 @@ CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-fo
 6. Default event mutli processing module used - this keepsalive connection and keeps some connections to idle state to server requests faster
 7. Increase - ulimit size 4096 - I guess default is 10000 on RHEL 7.5 at CVS, this can be increased by talking to Unix Admins
 8. Reverse proxy algorithm - by least busy connection
+9. As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. We use below configuration. 
+```
+ <IfModule mpm_event_module>
+    ServerLimit         16
+    StartServers         2
+    MaxRequestWorkers  200
+    MinSpareThreads     25
+    MaxSpareThreads     75
+    ThreadsPerChild     25
+ </IfModule>
 
-### Security Optimizations done  ######
+```
+Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate the requests and identify the details
+```
+ab -k -c 1000 -n 8000 https://<server>:<port>
+```
+-k keeps alive the connection similar to browser
+-c concurrent connection
+-n max# of connections
+10. Linux - increase write buffer size (not sure how much) - /proc/sys/net/core/wmem_max
+11. Linux - increase swapiness (not sure how much) - /proc/sys/vm/swappiness
+
+
+### Security Optimizations ######
 1. Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/)
 ```
 <IfModule mod_headers.c>
@@ -65,20 +89,3 @@ Header edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure
 2. Only specific file types served
 3. TLS 1.2
 
-### Potential tune ups  ######
-1. Tune mpm event module through PT or jmeter or Apache Workbench 
-```
-<IfModule mpm_event_module>
-    StartServers             4
-    MinSpareThreads          25
-    MaxSpareThreads          75
-    ThreadLimit              64
-    ThreadsPerChild          25
-    MaxRequestWorkers        30
-    MaxConnectionsPerChild   1000
-</IfModule>    
-```
-2. Linux - increase write buffer size (not sure how much) - /proc/sys/net/core/wmem_max
-3. Linux - increase swapiness (not sure how much) - /proc/sys/vm/swappiness
-4. Setup CDN - not needed due to low volumn of multimedia content and SPA
-5. No caching needed on server due to SPA as chrome will cache
