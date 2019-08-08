@@ -52,7 +52,7 @@ We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angula
  #purge the logs in 7 days = 60*60*24*7
  SetEnvIf Cookie "(^|;\ *)jwt=([^;\ ]+)" jwt-value=$2
  SetEnvIf jwt-value ".{5}$" jwt-last-5=$0
- LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{user-agent}i\" \"user-id:\" \"%{user-id}i\" \"message-id:\" \"%{co-rel-id}i\" \"browser-id:\" \"%{browser-id}i\" \"jwt:\" \"%{jwt-last-5}e\" %T %D" app-log-format
+ LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{user-agent}i\" \"user-id:\" \"%{user-id}i\" \"log-co-relation-id:\" \"%{co-  rel-id}i\" \"browser-id:\" \"%{browser-id}i\" \"jwt:\" \"%{jwt-last-5}e\" %T %D" app-log-format
  CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-format
  ```
 
@@ -97,6 +97,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
 
 
 ### Security Optimizations ######
+
 1. Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/). 
   * We set our JWT cookie as to work only with https(**Secure**). JWT cookie cannot be access by javascript(**httpOnly**). 
   * **X-Frame-Options** ensures that only iframes from same domain are allowed. 
@@ -105,7 +106,8 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
   * **X-Content-Type-Options** informs browser to respect the allowed mime types set by server.
   * **X-XSS-Protection** informs the browser to stop execution of detected xss attacks.
   * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** only allowed http methods are POST, GET, OPTIONS, DELETE and     PUT
-  * For **CORS** allowed domain, we allow only root domain.
+  * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** allowed domain, we allow only from our root domain.
+  
  ```
  SetEnvIf Origin "^(.*\.my-root\.com)$" root-domain=$1
  <IfModule mod_headers.c>
@@ -119,7 +121,54 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
   Header set Access-Control-Allow-Origin "%{root-domain}e" env=root-domain
  </IfModule>
  ```
-2. Only specific file types served
+ 
+2. Only specific mime/file types served
+
+```
+ <IfModule mime_module>
+    TypesConfig /etc/mime.types
+
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+ </IfModule>
+
+```
+
 3. TLS 1.2
+
+```
+ SSLEngine on
+	SSLOptions +StrictRequire
+ SSLProxyEngine on
+ SSLProxyVerify none
+ SSLProxyCheckPeerCN off
+ SSLProxyCheckPeerName off
+
+	<Directory />
+		SSLRequireSSL
+	</Directory>
+
+	SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
+ SSLProxyProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
+	SSLCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
+ SSLProxyCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
+	SSLCACertificateFile /app-directory/tlscerts/root-ca.crt
+	SSLCertificateFile /app-directory/tlscerts/app.crt
+	SSLCertificateKeyFile /app-directory/tlscerts/app.key
+
+```
 4. Directory access permissions
+
+```
+ <Directory "/app-directory">
+    AllowOverride All
+    Options FollowSymLinks
+    Options SymLinksIfOwnerMatch
+    Require all granted
+ </Directory>
+
+```
 
