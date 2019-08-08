@@ -50,7 +50,7 @@ CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-fo
 8. Reverse proxy algorithm - by least busy connection
 
 ### Security Optimizations done  ######
-1. Below are some of http security headers which we have tuned. For more information (check this link)[https://nullsweep.com/http-security-headers-a-complete-guide/]
+1. Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/)
 ```
 <IfModule mod_headers.c>
 Header set X-XSS-Protection "1; mode=block"
