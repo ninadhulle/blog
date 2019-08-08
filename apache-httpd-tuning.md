@@ -1,7 +1,7 @@
-### Apache Httpd 2.4 Performance Optimizations for Angular ######
+### Apache Httpd 2.4 Performance Optimizations ######
 We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angular](https://angular.io/) application in production. Below are few of common Httpd tuning options which we had done for production.
 
-1. **Modules:** Remove unused modules and load only the required minimum modules
+1. **Modules:** Remove unused modules and load only the required minimum modules. We have configured below minimal set of modules to be loaded.
  ```
  LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
  LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
@@ -36,7 +36,7 @@ We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angula
  ServerSignature Off
  ```
 
-3. **Caching:** Our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching. But for content heavy application it is recommended to use Content Delivery Network (CDN).
+3. **Caching:** Our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN).
 
 4. **Logging:** We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose.
  ```
@@ -66,11 +66,23 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
  ```
  ab -k -c 1000 -n 8000 https://<server>:<port>
  ```
--k keeps alive the connection similar to browser
--c concurrent connection
--n max# of connections
+ -k keeps alive the connection similar to browser
+ -c concurrent connection
+ -n max# of connections
 
-6. **Reverse proxy load balancer:** Algorithm - by least busy connection
+6. **Reverse proxy load balancer:** Our Angular application forwards all http requests to fetch data through API Gateway Proxy. We use *by least busy connection* reverse proxy load balancer algorithm. This always forwards request to least busy server. One drawback of *by least busy connection* is it doesnt ping if server is up, so it still forwards the connection when server is down, but our other reverse proxy infrastructure takes care of high availability.
+```
+<Proxy balancer://api-gateway-proxy>
+        BalancerMember https://<api-gateway-proxy-1>:<port-1>/
+        BalancerMember https://<api-gateway-proxy-2>:<port-2>/
+        BalancerMember https://<api-gateway-proxy-3>:<port-3>/
+        BalancerMember https://<api-gateway-proxy-4>:<port-3>/
+        ProxySet lbmethod=bybusyness
+    </Proxy>
+
+    ProxyPass "/api-gateway-proxy" "balancer://api-gateway-proxy" timeout=90
+    ProxyPassReverse "/api-gateway-proxy" "balancer://api-gateway-proxy"
+```
 
 7. **Linux OS Optimizations:** We use RHEL 7.5 and below are few optimizations we did to further improve performance.
  * Increase - ulimit size 4096 - I guess default is 10000 on RHEL 7.5
@@ -92,4 +104,5 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
  ```
 2. Only specific file types served
 3. TLS 1.2
+4. Directory access permissions
 
