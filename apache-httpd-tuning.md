@@ -37,6 +37,9 @@ We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angula
  ```
 
 3. **Caching:** Our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN).
+```
+Header set Cache-Control no-cache
+```
 
 4. **Logging:** We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose.
  ```
@@ -76,7 +79,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
         BalancerMember https://<api-gateway-proxy-1>:<port-1>/
         BalancerMember https://<api-gateway-proxy-2>:<port-2>/
         BalancerMember https://<api-gateway-proxy-3>:<port-3>/
-        BalancerMember https://<api-gateway-proxy-4>:<port-3>/
+        BalancerMember https://<api-gateway-proxy-4>:<port-4>/
         ProxySet lbmethod=bybusyness
     </Proxy>
 
@@ -91,14 +94,20 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
 
 
 ### Security Optimizations ######
-1. Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/)
+1. Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/). 
+  * We also set our jwt cookie as to work only https(**Secure**) and javascript cannot access it(**httpOnly**). 
+  * **X-Frame-Options** ensures that only iframes from same domain are allowed. 
+  * **Content Security Policy** specifies that all content is loaded only from same domain. 
+  * **Strict-Transport-Security** ensures that it is https only for all domains including sub domains. 
+  * **X-Content-Type-Options** informs browser to respect the allowed mime types set by server.
+  * **X-XSS-Protection** 
  ```
  <IfModule mod_headers.c>
  Header set X-XSS-Protection "1; mode=block"
  Header always append X-Frame-Options SAMEORIGIN
  Header set X-Content-Type-Options: nosniff
  Header set X-Content-Security-Policy "script-src 'self'; object-src 'self'"
- Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+ Header always set Strict-Transport-Security "max-age=36000; includeSubDomains"
  Header edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure
  </IfModule>
  ```
