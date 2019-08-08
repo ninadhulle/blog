@@ -10,4 +10,4 @@ This blog includes few of best practices we followed for Angular application. It
 
 5. [REST code standard/best practises we follow](https://github.com/ninadhulle/blog/blob/master/basic-micro-services-api-naming-practises.md). Work in progess.
 
-6. Sample code for [Angular service template](https://github.com/ninadhulle/blog/blob/master/service-template-for-angular-lookup-services.md). Work in progess.
+6. Sample code for [Angular service template](https://github.com/ninadhulle/blog/blob/master/service-template-for-angular-lookup-services.md).
