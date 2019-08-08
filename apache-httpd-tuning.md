@@ -76,18 +76,18 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
  -c concurrent connection
  -n max# of connections
 
-6. **Reverse proxy load balancer:** Our Angular application forwards all http requests to fetch data through API Gateway Proxy. We use *by least busy connection* reverse proxy load balancer algorithm. This always forwards request to least busy server. One drawback of *by least busy connection* is it doesnt ping if server is up, so it still forwards the connection when server is down, but our other reverse proxy infrastructure takes care of high availability.
+6. **Reverse proxy load balancer:** Our Angular application forwards all http requests to fetch data through API Gateway Proxy. We use *by least busy connection* reverse proxy load balancer algorithm. This always forwards request to least busy server. One drawback of *by least busy connection* is it doesnt ping if server is down, so it still forwards the connection when server is down, but our other reverse proxy infrastructure takes care of high availability.
 ```
-<Proxy balancer://api-gateway-proxy>
-        BalancerMember https://<api-gateway-proxy-1>:<port-1>/
-        BalancerMember https://<api-gateway-proxy-2>:<port-2>/
-        BalancerMember https://<api-gateway-proxy-3>:<port-3>/
-        BalancerMember https://<api-gateway-proxy-4>:<port-4>/
-        ProxySet lbmethod=bybusyness
-    </Proxy>
+ <Proxy balancer://api-gateway-proxy>
+   BalancerMember https://<api-gateway-proxy-1>:<port-1>/
+   BalancerMember https://<api-gateway-proxy-2>:<port-2>/
+   BalancerMember https://<api-gateway-proxy-3>:<port-3>/
+   BalancerMember https://<api-gateway-proxy-4>:<port-4>/
+   ProxySet lbmethod=bybusyness
+ </Proxy>
 
-    ProxyPass "/api-gateway-proxy" "balancer://api-gateway-proxy" timeout=90
-    ProxyPassReverse "/api-gateway-proxy" "balancer://api-gateway-proxy"
+  ProxyPass "/api-gateway-proxy" "balancer://api-gateway-proxy" timeout=90
+  ProxyPassReverse "/api-gateway-proxy" "balancer://api-gateway-proxy"
 ```
 
 7. **Linux OS Optimizations:** We use RHEL 7.5 and below are few optimizations we did to further improve performance.
