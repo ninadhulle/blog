@@ -43,24 +43,24 @@
 
 ```
  SSLEngine on
-	SSLOptions +StrictRequire
+ SSLOptions +StrictRequire
  SSLProxyEngine on
  SSLProxyVerify none
  SSLProxyCheckPeerCN off
  SSLProxyCheckPeerName off
 
-	<Directory />
-		SSLRequireSSL
-	</Directory>
+ <Directory />
+   SSLRequireSSL
+ </Directory>
 
-	SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
+ SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  SSLProxyProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
-	SSLCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
+ SSLCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
  SSLProxyCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
-	SSLCACertificateFile /app-directory/tlscerts/root-ca.crt
-	SSLCertificateFile /app-directory/tlscerts/app.crt
-	SSLCertificateKeyFile /app-directory/tlscerts/app.key
-
+ 
+ SSLCACertificateFile /app-directory/tlscerts/root-ca.crt
+ SSLCertificateFile /app-directory/tlscerts/app.crt
+ SSLCertificateKeyFile /app-directory/tlscerts/app.key
 ```
 4. Directory access permissions
 
