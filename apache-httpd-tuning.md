@@ -34,6 +34,14 @@ We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angula
  FileETag None
  ServerTokens Prod
  ServerSignature Off
+ 
+ <IfModule mime_module>
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+ </IfModule>
  ```
 
 3. **Caching:** Our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN).
