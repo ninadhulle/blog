@@ -4,39 +4,39 @@ This service will return a behaviour subject for every lookup data model.
 Below code snippets have details of CRUD operations on these lookup data models.
 The benefit is all data will be cached in a subject and using the subject same data can be retrieved. This should avoid repetive database calls.
 
-Below code snippets outline the service templates. Replace (along  with `<>`) `<GenericModel>` to your lookup/reference data model `<GenericDataService>` to your lookup service.
+Below code snippets outline the service templates. Replace `GenericModel` to your lookup/reference data model `GenericDataService` to your lookup service.
 
 Create your lookup or reference data model
 ```typescript
-export class <GenericModel> {
-  <id>:<dataType>;
-  <field>:<dataType>;
+export class GenericModel {
+  id:string;
+  field:string;
 }
 ```
 
 Import your model
 ```typescript
-import { <GenericModel> } from './<generic>.<model>';
+import { GenericModel } from './generic.model';
 ```
 
 Create the service. Use single service for all the lookup/reference data.
 ```typescript
 @Injectable()
-export class <GenericDataService> {
+export class GenericDataService {
 ```
   Create a new subject for each reference data or lookup. Add more subjects here for different lookup data or reference data.
   ```typescript
-  private <genericModel>Subject: BehaviorSubject<<GenericModel>[]>;
+  private genericModelSubject: BehaviorSubject<GenericModel[]>;
   ```  
   
   Add urls and endpoints for each.
   ```typescript
-  private <genericModelEndpoint>: string = API_ENDPOINT_CONFIG.<genericModelUrlFromEnvironment.ts> + '/<endpoint>';
+  private genericModelEndpoint: string = API_ENDPOINT_CONFIG.genericModelUrlFromEnvironmentTs + '/<endpoint>';
   ```
   
   Create boolean to check if subject for generic-model is initialized.
   ```typescript
-  private <genericModel>Initialized = false;
+  private genericModelInitialized = false;
   ```
   
   Use ServiceHttpClient as base class - this will do session extension/error handling.
@@ -47,39 +47,39 @@ export class <GenericDataService> {
     private growlService: GrowlService,
     ) {
     /////Initialize all the subjects
-    this.<genericModel>Subject = <BehaviorSubject<<GenericModel>[]>>new BehaviorSubject([]);
+    this.genericModelSubject = (BehaviorSubject<GenericModel[]>)new BehaviorSubject([]);
     
     /////Initialize all the flags
-    this.<genericModel>Initialized = false;
+    this.genericModelInitialized = false;
   }
   ```
 
   Create get method to fetch all the values that return the subject.
   ```typescript
-  getAll<GenericModel>(): BehaviorSubject<<GenericModel>[]> {
-    if(!this.<genericModel>Initialized) {
-        this.http.get(this.<genericModelEndpoint>).subscribe(
-          (data: <GenericModel>[]) => {
-            this.<genericModel>Initialized = true;
-            this.<genericModel>Subject.next(Object.assign({}, data));
+  getAllGenericModel(): BehaviorSubject<GenericModel[]> {
+    if(!this.genericModelInitialized) {
+        this.http.get(this.genericModelEndpoint).subscribe(
+          (data: GenericModel[]) => {
+            this.genericModelInitialized = true;
+            this.genericModelSubject.next(Object.assign({}, data));
           }, error => {
              this.handleError(error);
           }
         );
     }
-    return this.<genericModel>Subject;
+    return this.genericModelSubject;
   }
   ```
   
   Search function over lookup data.
   ```typescript
-  search<GenericModel>(<genericModelId>: string): <GenericModel> {
-    if(!this.<genericModel>Initialized) {
+  searchGenericModel(genericModelId: string): GenericModel {
+    if(!this.genericModelInitialized) {
         return null;
     }
-    const <genericModelList>: <GenericModel>[] = this.<genericModel>Subject.getValue();
-    var result = <genericModelList>.filter(function(item) {
-        return item.id === <genericModelId>;
+    const genericModelList: GenericModel[] = this.genericModelSubject.getValue();
+    var result = genericModelList.filter(function(item) {
+        return item.id === genericModelId;
     })[0];
     return result; 
   }
@@ -87,15 +87,15 @@ export class <GenericDataService> {
   
   Create method to add lookup/reference data. This is optional. This method returns the lookup/reference.
   ```typescript
-  post<GenericModel>(<genericModelObject>: <GenericModel>): BehaviorSubject<<GenericModel>[]> {
-    this.http.post(this.<genericModelEndpoint>, JSON.stringify(<genericModelObject>)).subscribe(
+  postGenericModel(genericModelObject: GenericModel): BehaviorSubject<GenericModel>[] {
+    this.http.post(this.genericModelEndpoint, JSON.stringify(genericModelObject)).subscribe(
       (data => {
-        const <genericModelList>: <GenericModel>[] = this.<genericModel>Subject.getValue();
+        const genericModelList: GenericModel[] = this.genericModelSubject.getValue();
         
         ////This can be replaced with Array.concat() if instead of object an object array is passed
-        <genericModelList>.push(genericModelObject);
-        this.<genericModel>Subject.next(Object.assign({}, <genericModelList>));
-        return this.<genericModel>Subject;
+        genericModelList.push(genericModelObject);
+        this.genericModelSubject.next(Object.assign({}, genericModelList));
+        return this.genericModelSubject;
       }, error => {
         this.handleError(error);
       }
@@ -104,20 +104,20 @@ export class <GenericDataService> {
   ```
   In above highlighted snippet you can replace `Array.push()` to `Array.concat()` if lookup/reference object to object array. 
   ```typescript
-  <genericModelList>.concat(genericModelObject);
+  genericModelList.concat(genericModelObject);
   ```
   
   Update lookup/reference data. Return subject after updating.
   ```typescript
-  put<GenericModel>(<genericModelObject>: <GenericModel>): BehaviorSubject<<GenericModel>[]> {
-    this.http.put(this.<genericModelEndpoint>, JSON.stringify(<genericModelObject>)).subscribe(
-      (data: <GenericModel>) => {
-        const <genericModelList>: <GenericModel>[] = this.<genericModel>Subject.getValue();
-        <genericModelList>.forEach((model, i) => {
+  putGenericModel(genericModelObject: GenericModel): BehaviorSubject<GenericModel[]> {
+    this.http.put(this.genericModelEndpoint, JSON.stringify(genericModelObject)).subscribe(
+      (data: GenericModel) => {
+        const genericModelList: GenericModel[] = this.genericModelSubject.getValue();
+        genericModelList.forEach((model, i) => {
           if (model.id === data.id) {
-            <genericModelList>[i] = data;
-            this.<genericModel>Subject.next(Object.assign({}, <genericModelList>));
-            return this.<genericModel>Subject;
+            genericModelList[i] = data;
+            this.genericModelSubject.next(Object.assign({}, genericModelList));
+            return this.genericModelSubject;
           }
         });
 
@@ -130,15 +130,15 @@ export class <GenericDataService> {
 
   Delete lookup/reference data, update the subject post that and return subject.
   ```typescript
-  delete<GenericModel>(<genericModelId>: string): BehaviorSubject<<GenericModel>[]> {
-    this.http.delete(this.<genericModelEndpoint> + `/${<genericModelId>}`).subscribe(
-      (data: <GenericModel>) => {
-        const <genericModelList>: <GenericModel>[] = this.<genericModel>Subject.getValue();
-        <genericModelList>.forEach((model, i) => {
+  deleteGenericModel(genericModelId: string): BehaviorSubject<GenericModel[]> {
+    this.http.delete(this.genericModelEndpoint + `/${<genericModelId>}`).subscribe(
+      (data: GenericModel) => {
+        const genericModelList: GenericModel[] = this.genericModelSubject.getValue();
+        genericModelList.forEach((model, i) => {
           if (model.id === data.id) {
-            <genericModelList>.splice(i, 1);
-            this.<genericModel>Subject.next(Object.assign({}, <genericModelList>));
-            return this.<genericModel>Subject;
+            genericModelList.splice(i, 1);
+            this.genericModelSubject.next(Object.assign({}, genericModelList));
+            return this.genericModelSubject;
           }
         });
       }, error => {
@@ -166,12 +166,12 @@ export class <GenericDataService> {
 In your component file add Inject `<generic-service>`.
 ```typescript
 export class ExampleComponent implements OnInit {
-  <genericModel>Subject: BehaviorSubject<<GenericModel>[]>;
+  genericModelSubject: BehaviorSubject<GenericModel[]>;
   /////or
-  <genericModelsList>:<GenericModel[]>
+  genericModelsList:GenericModel[]
   constructor(
     private formBuilder: FormBuilder,
-    private <genericServiceObject>: <generic-service>) {
+    private genericServiceObject: GenericDataService) {
   }
 ``` 
   
@@ -179,12 +179,12 @@ export class ExampleComponent implements OnInit {
    Add ngOnInit method to initialize the lookup data
    ```typescript
    ngOnInit() {
-     this.<genericModel>Subject =  this.<genericServiceObject>.getAll<generic-service>();
+     this.genericModelSubject =  this.genericServiceObject.getAllGenericModel();
      
      /////another way to access the service is
      this.genericDataService.getAllGenericModel().subscribe(
       data => {
-        this.<genericModelsList> = data;
+        this.genericModelsList = data;
         ////below code shows how single model can be searched
         this.singleGenericModel = this.genericDataService.searchGenericModel(2);
       }
@@ -195,35 +195,36 @@ export class ExampleComponent implements OnInit {
    Below snippet shows create methods to add lookup/reference
    ```typescript
    create() {
-    let <genericModelObject>: <generic:model>;
-    <genericModelObject> = {
-        <field>:<value>;
+    let genericModelObject: GenericModel;
+    genericModelObject = {
+        id:<value>;
+        field:<value>;
     }
-    this.<genericModel>Subject =  this.<genericServiceObject>.post(<genericModelObject>);
+    this.genericModelSubject =  this.genericServiceObject.post(genericModelObject);
    }
    ```
    
    Below snippet shows update method to add lookup/reference
    ```typescript
    update() {
-    let <genericModelObject>: <generic:model>;
-    <genericModelObject> = {
-        <field>:<updatedValue>;
+    let genericModelObject: GenericModel;
+    genericModelObject = {
+        field:<updatedValue>;
     }
-    this.<genericModel>Subject =  this.<genericServiceObject>.put(<genericModelObject>);
+    this.genericModelSubject =  this.genericServiceObject.put(genericModelObject);
    }
    ```   
   
 In your template example-component.html file below line gives an exammple to use subjects.
 ```
-<div *ngFor="let <genericModel> of <genericServiceObject>.<genericModel>Subject | async">
-{{ <genericModel>.id }} {{ <genericModel>.value }}
+<div *ngFor="let genericModel of genericServiceObject.genericModelSubject | async">
+{{ genericModel.id }} {{ genericModel.value }}
 </div>
 ``` 
 
 Or if you define array of lookup/reference models in your component, then you can use below code.
 ```
-<div *ngFor="let <genericModel> of <genericModelsList>">
-{{ <genericModel>.id }} {{ <genericModel>.value }}
+<div *ngFor="let genericModel of genericModelsList">
+{{ genericModel.id }} {{ genericModel.value }}
 </div>   
 ```
