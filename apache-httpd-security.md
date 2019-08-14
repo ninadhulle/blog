@@ -82,7 +82,7 @@ Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509
 ```
 
 4. **URL Rewrite**
-
+We redirect any request to http to https site using Apache Rewrite module. The [R,L](https://httpd.apache.org/docs/2.4/rewrite/flags.html) specifies redirect flag and process no further rules once condition is matched.
 ```
  <IfModule mod_rewrite.c>
     RewriteEngine on
