@@ -1,6 +1,7 @@
 ### Security Optimizations ######
 
 1. **Headers**
+
 Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/). 
   * We set our JWT cookie as to work only with https(**Secure**). JWT cookie cannot be access by javascript(**httpOnly**). 
   * **X-Frame-Options** ensures that only iframes from same domain are allowed. 
@@ -26,6 +27,7 @@ Below are some of http security headers which we have tuned. For more informatio
  ```
  
 2. **Mime Types**
+
 Only specific mime/file types served
 ```
  <IfModule mime_module>
@@ -41,6 +43,7 @@ Only specific mime/file types served
 ```
 
 3. **Https**
+
 We use [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) as default for all our communication right from browser to database. Below are configuration to turn on TLS 1.2 settings for Apache Httpd.
 *StrictRequire* returns forbidden access when someone tries access http site against https.
 We enable *SSLProxyEngine* to reverse proxy to our micro-services backend and for browser to send the our authentication cookie(JWT) back to our micro-services backend. We only compare the common-name(CN) of certificate matches the host-name by turning on *SSLProxyCheckPeerCN* and turning off *SSLProxyCheckPeerName*
@@ -58,15 +61,18 @@ Below option specifies that https is required to access for all paths. This opti
    SSLRequireSSL
  </Directory>
 ```
-We enable on TLS 1.2 rejecting any SSL connections lower than TLS 1.2
+We enable on TLS 1.2 rejecting any https connections using SSL protocols lower than TLS 1.2. THis is enabled for reverse proxy too.
 ```
  SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  SSLProxyProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  ```
-We also enable only the strongest ciphers.
+We also enable only the strongest ciphers over TLS 1.2. This is enabled for reverse proxy too. These [settings](https://httpd.apache.org/docs/trunk/ssl/ssl_howto.html) are recommended by Apache Httpd. These settings might break some older versions of browsers but all of our user base is interal and use Chrome 50+. 
  ```
- SSLCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
- SSLProxyCipherSuite ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:!RC4+RSA:+HIGH:!MEDIUM:!SSLv2:!SSLv3:!IDEA:!RC2:!DSS:!TLSv1:!TLSv1.1:!DES:!3DES
+SSLCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20- POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+SSLProxyCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20- POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+SSLHonorCipherOrder on
+SSLCompression      off
+SSLSessionTickets   off
  ```
 Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509#Certificate_filename_extensions) format for our certificates. We have Global Root certificate of our CA in root-ca.crt and rest of chain including server, intermediate certificate  is kept in app.crt file. The private key is saved in app.key file.
  ```
@@ -75,7 +81,17 @@ Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509
  SSLCertificateKeyFile /app-directory/tlscerts/app.key
 ```
 
-4. **Directory access permissions**
+4. **URL Rewrite**
+
+```
+ <IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{HTTPS} off
+    RewriteRule (.*) https://%{SERVER_NAME}%{REQUEST_URI} [R,L]
+ </IfModule>
+```
+
+5. **Directory access permissions**
 
 ```
  <Directory "/app-directory">
