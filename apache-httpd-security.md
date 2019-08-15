@@ -55,7 +55,7 @@ We enable *SSLProxyEngine* to reverse proxy to our micro-services backend and fo
  SSLProxyCheckPeerCN on
  SSLProxyCheckPeerName off
 ```
-Below option specifies that https is required to access for all paths. This option along with *StrictRequire* gives forbidden access error.
+Below option specifies that https is required to access for all paths. This option along with *StrictRequire* gives forbidden access error when http is used.
 ```
  <Directory />
    SSLRequireSSL
@@ -92,6 +92,14 @@ For any request to http site we redirect to https site using Apache Rewrite modu
  </IfModule>
 ```
 
+We also block Http 1.0 requests as part of *<IfModule mod_rewrite.c>* block.
+
+```
+    RewriteCond %{THE_REQUEST} !HTTP/1.1$
+    RewriteRule .* - [F]
+```
+
+
 5. **Directory access permissions**
 
 We deny all access to root directory to disable any client walkthroughs.
@@ -127,4 +135,15 @@ SSLSessionCacheTimeout 300
 KeepAliveTimeout 5
 TimeOut 300
 ProxyTimeout 60
+```
+
+7. **Server Banners**
+
+We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block Linux inode, mime types/boundaries, child processes, etc. This is also required for PCI compliance. Http TRACE is also disabled.
+
+```
+ ServerTokens Prod
+ ServerSignature Off
+ FileETag None
+ TraceEnable off
 ```
