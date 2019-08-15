@@ -9,9 +9,7 @@ Below are some of http security headers which we have tuned. For more informatio
   * **Strict-Transport-Security** ensures that it is https only for all domains including sub domains. 
   * **X-Content-Type-Options** informs browser to respect the allowed mime types set by server.
   * **X-XSS-Protection** informs the browser to stop execution of detected xss attacks.
-  * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** only allowed http methods are POST, GET, OPTIONS, DELETE and     PUT.
   * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** allowed domain, we allow traffic only from our root domain.
-  
  ```
  SetEnvIf Origin "^(.*\.my-root\.com)$" root-domain=$1
  <IfModule mod_headers.c>
@@ -21,7 +19,6 @@ Below are some of http security headers which we have tuned. For more informatio
   Header always set Strict-Transport-Security "max-age=36000; includeSubDomains"
   Header set X-Content-Type-Options: nosniff
   Header set X-XSS-Protection "1; mode=block"
-  Header always set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT"
   Header set Access-Control-Allow-Origin "%{root-domain}e" env=root-domain
  </IfModule>
  ```
@@ -74,7 +71,7 @@ SSLHonorCipherOrder on
 SSLCompression      off
 SSLSessionTickets   off
  ```
-Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509#Certificate_filename_extensions) format for our certificates. We have Global Root certificate of our CA in root-ca.crt and rest of chain including server, intermediate certificate  is kept in app.crt file. The private key is saved in app.key file.
+Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509#Certificate_filename_extensions) format for our certificates. We have Global Root certificate of our CA in root-ca.crt and rest of chain including server, intermediate certificate  is kept in app.crt file. The private key is saved in app.key file and we use recommended RSA private key strength 2048.
  ```
  SSLCACertificateFile /app-directory/tlscerts/root-ca.crt
  SSLCertificateFile /app-directory/tlscerts/app.crt
@@ -91,14 +88,16 @@ For any request to http site we redirect to https site using Apache Rewrite modu
     RewriteRule (.*) https://%{SERVER_NAME}%{REQUEST_URI} [R,L]
  </IfModule>
 ```
-
 We also block Http 1.0 requests as part of *<IfModule mod_rewrite.c>* block.
-
 ```
     RewriteCond %{THE_REQUEST} !HTTP/1.1$
     RewriteRule .* - [F]
 ```
-
+We allow only GET, POST, HEAD. Though this doesnt block OPTIONS, PUT, DELETE method through reverse proxies which use for our Angular services.
+```
+    RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)$
+    RewriteRule .* - [F]
+```
 
 5. **Directory access permissions**
 
@@ -108,9 +107,7 @@ We deny all access to root directory to disable any client walkthroughs.
     Require all denied
  </Directory>
 ```
-
 We allow *AllowOverride* to all as we have .htaccess to load our Angular application. And then only selectively allow *Require all granted* for application directory. We allow Symbolic Links through *FollowSymLinks* and *SymLinksIfOwnerMatch*
-
 ```
  <Directory "/app-directory">
     AllowOverride All
@@ -118,7 +115,6 @@ We allow *AllowOverride* to all as we have .htaccess to load our Angular applica
     Options SymLinksIfOwnerMatch
     Require all granted
  </Directory>
-
 ```
 
 6. **Timeouts**
@@ -139,8 +135,7 @@ ProxyTimeout 60
 
 7. **Server Banners**
 
-We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block Linux inode, mime types/boundaries, child processes, etc. This is also required for PCI compliance. Http TRACE is also disabled.
-
+We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block [Linux inode](https://en.wikipedia.org/wiki/Inode), mime types/boundaries, child processes, etc. This is also required for PCI compliance. Http TRACE is also disabled,.
 ```
  ServerTokens Prod
  ServerSignature Off
