@@ -66,7 +66,7 @@ We enable on TLS 1.2 rejecting any https connections using SSL protocols lower t
  SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  SSLProxyProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  ```
-We also enable only the strongest ciphers over TLS 1.2. This is enabled for reverse proxy too. These [settings](https://httpd.apache.org/docs/trunk/ssl/ssl_howto.html) are recommended by Apache Httpd. These settings might break some older versions of browsers but all of our user base is interal and use Chrome 60+. 
+We also enable only the strongest ciphers over TLS 1.2. This is enabled for reverse proxy too. These [settings](https://httpd.apache.org/docs/trunk/ssl/ssl_howto.html) are recommended by Apache Httpd. Be careful though as these settings might break some older versions of browsers.
  ```
 SSLCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20- POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
 SSLProxyCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20- POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
@@ -82,6 +82,7 @@ Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509
 ```
 
 4. **URL Rewrite**
+
 For any request to http site we redirect to https site using Apache Rewrite module. The [R,L](https://httpd.apache.org/docs/2.4/rewrite/flags.html) specifies redirect flag and processes no further rules once condition is matched.
 ```
  <IfModule mod_rewrite.c>
@@ -92,6 +93,15 @@ For any request to http site we redirect to https site using Apache Rewrite modu
 ```
 
 5. **Directory access permissions**
+
+We deny all access to root directory to disable any client walkthroughs.
+```
+ <Directory "/">
+    Require all denied
+ </Directory>
+```
+
+We allow *AllowOverride* to all as we have .htaccess to load our Angular application. And then only selectively allow *Require all granted* for application directory. We allow Symbolic Links through *FollowSymLinks* and *SymLinksIfOwnerMatch*
 
 ```
  <Directory "/app-directory">
@@ -104,6 +114,7 @@ For any request to http site we redirect to https site using Apache Rewrite modu
 ```
 
 6. **Timeouts**
+
 We have setup below configuration to limit timeouts.
  * *RequestReadTimeout*: Limits the time client takes to send the request.
  * *SSLSessionCacheTimeout*: Sets the timeout for the information stored in the SSL Session Cache, the OpenSSL internal cache and for sessions resumed by TLS session resumption 
