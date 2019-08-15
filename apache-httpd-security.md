@@ -88,15 +88,15 @@ For any request to http site we redirect to https site using Apache Rewrite modu
     RewriteRule (.*) https://%{SERVER_NAME}%{REQUEST_URI} [R,L]
  </IfModule>
 ```
-We also block Http 1.0 requests as part of *<IfModule mod_rewrite.c>* block.
+We also block Http 1.0 requests as part of *<IfModule mod_rewrite.c>* block. [F] flag is to disable.
 ```
-    RewriteCond %{THE_REQUEST} !HTTP/1.1$
-    RewriteRule .* - [F]
+ RewriteCond %{THE_REQUEST} !HTTP/1.1$
+ RewriteRule .* - [F]
 ```
 We allow only GET, POST, HEAD. Though this doesnt block OPTIONS, PUT, DELETE method through reverse proxies which use for our Angular services.
 ```
-    RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)$
-    RewriteRule .* - [F]
+ RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)$
+ RewriteRule .* - [F]
 ```
 
 5. **Directory access permissions**
@@ -135,10 +135,9 @@ ProxyTimeout 60
 
 7. **Server Banners**
 
-We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block [Linux inode](https://en.wikipedia.org/wiki/Inode), mime types/boundaries, child processes, etc. This is also required for PCI compliance. Http TRACE is also disabled,.
+We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block [Linux inode](https://en.wikipedia.org/wiki/Inode), mime types/boundaries, child processes, etc. This is also required for PCI compliance.
 ```
  ServerTokens Prod
  ServerSignature Off
  FileETag None
- TraceEnable off
 ```
