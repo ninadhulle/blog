@@ -3,14 +3,14 @@
 1. **Headers**
 
 Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/). 
-  * We set our JWT cookie as to work only with https(**Secure**). JWT cookie cannot be access by javascript(**httpOnly**). 
+  * We set our JWT cookie to work only with https(**Secure**). JWT cookie cannot be accessed by javascript(**httpOnly**). 
   * **X-Frame-Options** ensures that only iframes from same domain are allowed. 
   * **Content Security Policy** specifies that all content is loaded only from same domain. 
   * **Strict-Transport-Security** ensures that it is https only for all domains including sub domains. 
   * **X-Content-Type-Options** informs browser to respect the allowed mime types set by server.
   * **X-XSS-Protection** informs the browser to stop execution of detected xss attacks.
-  * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** only allowed http methods are POST, GET, OPTIONS, DELETE and     PUT
-  * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** allowed domain, we allow only from our root domain.
+  * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** only allowed http methods are POST, GET, OPTIONS, DELETE and     PUT.
+  * For **[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)** allowed domain, we allow traffic only from our root domain.
   
  ```
  SetEnvIf Origin "^(.*\.my-root\.com)$" root-domain=$1
@@ -66,7 +66,7 @@ We enable on TLS 1.2 rejecting any https connections using SSL protocols lower t
  SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  SSLProxyProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  ```
-We also enable only the strongest ciphers over TLS 1.2. This is enabled for reverse proxy too. These [settings](https://httpd.apache.org/docs/trunk/ssl/ssl_howto.html) are recommended by Apache Httpd. These settings might break some older versions of browsers but all of our user base is interal and use Chrome 50+. 
+We also enable only the strongest ciphers over TLS 1.2. This is enabled for reverse proxy too. These [settings](https://httpd.apache.org/docs/trunk/ssl/ssl_howto.html) are recommended by Apache Httpd. These settings might break some older versions of browsers but all of our user base is interal and use Chrome 60+. 
  ```
 SSLCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20- POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
 SSLProxyCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20- POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
@@ -82,7 +82,7 @@ Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509
 ```
 
 4. **URL Rewrite**
-We redirect any request to http to https site using Apache Rewrite module. The [R,L](https://httpd.apache.org/docs/2.4/rewrite/flags.html) specifies redirect flag and process no further rules once condition is matched.
+For any request to http site we redirect to https site using Apache Rewrite module. The [R,L](https://httpd.apache.org/docs/2.4/rewrite/flags.html) specifies redirect flag and processes no further rules once condition is matched.
 ```
  <IfModule mod_rewrite.c>
     RewriteEngine on
@@ -101,4 +101,19 @@ We redirect any request to http to https site using Apache Rewrite module. The [
     Require all granted
  </Directory>
 
+```
+
+6. **Timeouts**
+We have setup below configuration to limit timeouts.
+ * *RequestReadTimeout*: Limits the time client takes to send the request.
+ * *SSLSessionCacheTimeout*: Sets the timeout for the information stored in the SSL Session Cache, the OpenSSL internal cache and for sessions resumed by TLS session resumption 
+ * *KeepAliveTimeout*: Amount of time to wait between subsequent requests on a persistent connection.
+ * *Timeout*: Amount of time after which requests are failed.
+ * *ProxyTimeout*: Amount of time after which reverse proxy requests are failed.
+```
+RequestReadTimeout header=20-40,MinRate=500 body=20,MinRate=500
+SSLSessionCacheTimeout 300
+KeepAliveTimeout 5
+TimeOut 300
+ProxyTimeout 60
 ```
