@@ -2,7 +2,8 @@
 
 1. **Headers**
 
-Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http-security-headers-a-complete-guide/). 
+ Below are some of http security headers which we have tuned. 
+ For more information [check this link](https://nullsweep.com/http- security-headers-a-complete-guide/). 
   * We set our JWT cookie to work only with https(**Secure**). JWT cookie cannot be accessed by javascript(**httpOnly**). 
   * **X-Frame-Options** ensures that only iframes from same domain are allowed. 
   * **Content Security Policy** specifies that all content is loaded only from same domain. 
@@ -25,9 +26,11 @@ Below are some of http security headers which we have tuned. For more informatio
  
 2. **Https**
 
-We use [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) as default for all our communication right from browser to database. Below are configuration to turn on TLS 1.2 settings for Apache Httpd.
-*StrictRequire* returns forbidden access when someone tries access http site against https.
-We enable *SSLProxyEngine* to reverse proxy to our micro-services backend and for browser to send the our authentication cookie(JWT) back to our micro-services backend. We only compare the common-name(CN) of certificate matches the host-name by turning on *SSLProxyCheckPeerCN* and turning off *SSLProxyCheckPeerName*
+ We use [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) as default for all our communication right 
+ from browser to database. Below are configuration to turn on TLS 1.2 settings for Apache Httpd.
+ *StrictRequire* returns forbidden access when someone tries access http site against https.
+ We enable *SSLProxyEngine* to reverse proxy to our micro-services backend and for browser to send the our authentication 
+ cookie(JWT)  back to our micro-services backend. We only compare the common-name(CN) of certificate matches the host-name by turning on  *SSLProxyCheckPeerCN* and turning off *SSLProxyCheckPeerName*
 ```
  SSLEngine on
  SSLOptions +StrictRequire
@@ -124,20 +127,4 @@ We dont want to expose what server we are running, so we disabled Apache Httpd S
  ServerTokens Prod
  ServerSignature Off
  FileETag None
-```
-
-7. **Mime Types**
-
-Only specific mime/file types served
-```
- <IfModule mime_module>
-    TypesConfig /etc/mime.types
-
-    AddType application/x-compress .Z
-    AddType application/x-gzip .gz .tgz
-
-    AddType text/html .shtml
-    AddOutputFilter INCLUDES .shtml
- </IfModule>
-
 ```
