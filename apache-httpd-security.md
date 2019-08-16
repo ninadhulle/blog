@@ -23,23 +23,7 @@ Below are some of http security headers which we have tuned. For more informatio
  </IfModule>
  ```
  
-2. **Mime Types**
-
-Only specific mime/file types served
-```
- <IfModule mime_module>
-    TypesConfig /etc/mime.types
-
-    AddType application/x-compress .Z
-    AddType application/x-gzip .gz .tgz
-
-    AddType text/html .shtml
-    AddOutputFilter INCLUDES .shtml
- </IfModule>
-
-```
-
-3. **Https**
+2. **Https**
 
 We use [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) as default for all our communication right from browser to database. Below are configuration to turn on TLS 1.2 settings for Apache Httpd.
 *StrictRequire* returns forbidden access when someone tries access http site against https.
@@ -78,7 +62,7 @@ Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509
  SSLCertificateKeyFile /app-directory/tlscerts/app.key
 ```
 
-4. **URL Rewrite**
+3. **URL Rewrite**
 
 For any request to http site we redirect to https site using Apache Rewrite module. The [R,L](https://httpd.apache.org/docs/2.4/rewrite/flags.html) specifies redirect flag and processes no further rules once condition is matched.
 ```
@@ -99,7 +83,7 @@ We allow only GET, POST, HEAD. Though this doesnt block OPTIONS, PUT, DELETE met
  RewriteRule .* - [F]
 ```
 
-5. **Directory access permissions**
+4. **Directory access permissions**
 
 We deny all access to root directory to disable any client walkthroughs.
 ```
@@ -117,7 +101,7 @@ We allow *AllowOverride* to all as we have .htaccess to load our Angular applica
  </Directory>
 ```
 
-6. **Timeouts**
+5. **Timeouts**
 
 We have setup below configuration to limit timeouts.
  * *RequestReadTimeout*: Limits the time client takes to send the request.
@@ -133,11 +117,27 @@ TimeOut 300
 ProxyTimeout 60
 ```
 
-7. **Server Banners**
+6. **Server Banners**
 
 We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block [Linux inode](https://en.wikipedia.org/wiki/Inode), mime types/boundaries, child processes, etc. This is also required for PCI compliance.
 ```
  ServerTokens Prod
  ServerSignature Off
  FileETag None
+```
+
+7. **Mime Types**
+
+Only specific mime/file types served
+```
+ <IfModule mime_module>
+    TypesConfig /etc/mime.types
+
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+ </IfModule>
+
 ```
