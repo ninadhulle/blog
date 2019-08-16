@@ -29,12 +29,6 @@ We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angula
  SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|iso|tar|bz2|sit|rar|png|jpg|gif|jpeg|flv|swf|mp3)$ no-gzip dont-vary
  DeflateCompressionLevel 9
 
- TraceEnable Off
- Header unset ETag
- FileETag None
- ServerTokens Prod
- ServerSignature Off
- 
  <IfModule mime_module>
     AddType application/x-compress .Z
     AddType application/x-gzip .gz .tgz
