@@ -1,10 +1,10 @@
 ### Security Optimizations ######
+Below are list of configuration which we did as part of Apache Httpd for hardening our Angular web application.
 
 1. **Headers**
 
- Below are some of http security headers which we have tuned. 
- For more information [check this link](https://nullsweep.com/http- security-headers-a-complete-guide/). 
-  * We set our JWT cookie to work only with https(**Secure**). JWT cookie cannot be accessed by javascript(**httpOnly**). 
+Below are some of http security headers which we have tuned. For more information [check this link](https://nullsweep.com/http- security-headers-a-complete-guide/). 
+  * We set our JWT cookie to work only with https(**Secure**). Also, JWT cookie cannot be accessed by javascript(**httpOnly**). 
   * **X-Frame-Options** ensures that only iframes from same domain are allowed. 
   * **Content Security Policy** specifies that all content is loaded only from same domain. 
   * **Strict-Transport-Security** ensures that it is https only for all domains including sub domains. 
@@ -28,9 +28,8 @@
 
  We use [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) as default for all our communication right 
  from browser to database. Below are configuration to turn on TLS 1.2 settings for Apache Httpd.
- *StrictRequire* returns forbidden access when someone tries access http site against https.
- We enable *SSLProxyEngine* to reverse proxy to our micro-services backend and for browser to send the our authentication 
- cookie(JWT)  back to our micro-services backend. We only compare the common-name(CN) of certificate matches the host-name by turning on  *SSLProxyCheckPeerCN* and turning off *SSLProxyCheckPeerName*
+ 
+ *StrictRequire* returns forbidden access when someone tries access http site. We enable *SSLProxyEngine* to reverse proxy to our micro-services backend and for browser to send the our authentication cookie(JWT) back to our micro-services backend. We only compare the common-name(CN) of certificate matches the host-name by turning on  *SSLProxyCheckPeerCN* and turning off *SSLProxyCheckPeerName*
 ```
  SSLEngine on
  SSLOptions +StrictRequire
@@ -45,7 +44,7 @@ Below option specifies that https is required to access for all paths. This opti
    SSLRequireSSL
  </Directory>
 ```
-We enable on TLS 1.2 rejecting any https connections using SSL protocols lower than TLS 1.2. THis is enabled for reverse proxy too.
+We enable on TLS 1.2 rejecting any https connections using SSL protocols lower than TLS 1.2. This is enabled for reverse proxy too.
 ```
  SSLProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
  SSLProxyProtocol -ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1 +TLSv1.2
@@ -58,7 +57,7 @@ SSLHonorCipherOrder on
 SSLCompression      off
 SSLSessionTickets   off
  ```
-Below are certificate settings. We use [CRT](https://en.wikipedia.org/wiki/X.509#Certificate_filename_extensions) format for our certificates. We have Global Root certificate of our CA in root-ca.crt and rest of chain including server, intermediate certificate  is kept in app.crt file. The private key is saved in app.key file and we use recommended RSA private key strength 2048.
+Below are certificate settings for https. We use [CRT](https://en.wikipedia.org/wiki/X.509#Certificate_filename_extensions) format for our certificates. We have Global Root certificate of our CA in root-ca.crt and rest of chain including server, intermediate certificate  is kept in app.crt file. The private key is saved in app.key file and we use recommended RSA private key strength of 2048.
  ```
  SSLCACertificateFile /app-directory/tlscerts/root-ca.crt
  SSLCertificateFile /app-directory/tlscerts/app.crt
@@ -75,12 +74,12 @@ For any request to http site we redirect to https site using Apache Rewrite modu
     RewriteRule (.*) https://%{SERVER_NAME}%{REQUEST_URI} [R,L]
  </IfModule>
 ```
-We also block Http 1.0 requests as part of *<IfModule mod_rewrite.c>* block. [F] flag is to disable.
+We also block Http 1.0 requests as part of *<IfModule mod_rewrite.c>* block. [F] flag is to disable any requests.
 ```
  RewriteCond %{THE_REQUEST} !HTTP/1.1$
  RewriteRule .* - [F]
 ```
-We allow only GET, POST, HEAD. Though this doesnt block OPTIONS, PUT, DELETE method through reverse proxies which use for our Angular services.
+We allow only GET, POST, HEAD. Though this doesnt block OPTIONS, PUT, DELETE method through reverse proxies which we use for our Angular services.
 ```
  RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD)$
  RewriteRule .* - [F]
@@ -88,7 +87,7 @@ We allow only GET, POST, HEAD. Though this doesnt block OPTIONS, PUT, DELETE met
 
 4. **Directory access permissions**
 
-We deny all access to root directory to disable any client walkthroughs.
+We deny all access to root directory to disable any client walkthroughs server folders.
 ```
  <Directory "/">
     Require all denied
@@ -122,9 +121,11 @@ ProxyTimeout 60
 
 6. **Server Banners**
 
-We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block [Linux inode](https://en.wikipedia.org/wiki/Inode), mime types/boundaries, child processes, etc. This is also required for PCI compliance.
+We dont want to expose what server we are running, so we disabled Apache Httpd Server Banners. We also disable *FileETags* to block [Linux inode](https://en.wikipedia.org/wiki/Inode), mime types/boundaries, child processes, etc. This is also required for PCI compliance. Http TRACE is also disabled for [XST](https://www.owasp.org/index.php/Cross_Site_Tracing).
 ```
  ServerTokens Prod
  ServerSignature Off
  FileETag None
+ Header unset ETag
+ TraceEnable Off
 ```
