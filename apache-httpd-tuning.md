@@ -2,7 +2,7 @@
 We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angular](https://angular.io/) application in production. Below are few of common Httpd tuning options which we had done for production.
 
 1. **Multi Processing Module:** As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. Event MPM keepsalive connection and keeps some connections to idle state to server requests faster.
-We have 16 core CPU so we set out *ServerLimit* to 16. The calculation is *MaxRequestWorker*=*ServerLimit* x *ThreadsPerChild
+We have 16 core CPU so we set out *ServerLimit* to 16. The calculation is *MaxRequestWorker*=*ServerLimit* x *ThreadsPerChild*
  ```
   <IfModule mpm_event_module>
      ServerLimit         16
