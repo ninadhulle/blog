@@ -3,7 +3,7 @@ We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angula
 
 1. **Multi Processing Module:** As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. Event MPM keepsalive connection and keeps some connections to idle state to server requests faster.
 We have 16 core CPU so we set out *ServerLimit* to 16. The calculation is *MaxRequestWorker*=*ServerLimit* x *ThreadsPerChild*
- ```
+```
   <IfModule mpm_event_module>
      ServerLimit         16
      StartServers         2
@@ -12,17 +12,17 @@ We have 16 core CPU so we set out *ServerLimit* to 16. The calculation is *MaxRe
      MaxSpareThreads     75
      ThreadsPerChild     25
   </IfModule>
- ```
+```
 Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate the requests and get the metrics.
- ```
+```
  ab -k -c 1000 -n 8000 https://<server>:<port>
- ```
+```
  -k keeps alive the connection similar to browser
  -c concurrent connection
  -n max# of connections
  
 2. **Modules:** Remove unused modules and load only the required minimum modules. We have configured below minimal set of modules to be loaded.
- ```
+```
  LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
  LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
  LoadModule lbmethod_bybusyness_module modules/mod_lbmethod_bybusyness.so
@@ -43,24 +43,17 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
  LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
  
  LoadModule mpm_event_module modules/mod_mpm_event.so 
- ```
+```
 
-3. **Compression:** Setup appropriate Expires, Etag, and Cache-Control Headers
- ```
+3. **Compression:** 
+ Apache Httpd's [mod_deflate](https://httpd.apache.org/docs/2.4/mod/mod_deflate.html) to zip the data when sent to browser. Below configuration enables compression for file extensions. Also we use compression level(*DeflateCompressionLevel*) as 9 as our web CPU is barely utilized due to Single Page Application(SPA) architecture.
+```
  SetOutputFilter DEFLATE
  SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|iso|tar|bz2|sit|rar|png|jpg|gif|jpeg|flv|swf|mp3)$ no-gzip dont-vary
  DeflateCompressionLevel 9
+```
 
- <IfModule mime_module>
-    AddType application/x-compress .Z
-    AddType application/x-gzip .gz .tgz
-
-    AddType text/html .shtml
-    AddOutputFilter INCLUDES .shtml
- </IfModule>
- ```
-
-4. **Caching:** Our application is light weight with very neglible media/content for caching and Single Page Application (SPA) so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN).
+4. **Caching:** Our application is light weight with very neglible media/content for caching and as we have SPA architecture so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN).
 ```
  <IfModule mod_headers.c>
   Header set Cache-Control no-cache
@@ -69,7 +62,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
 ```
 
 5. **Logging:** We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose.
- ```
+```
  LogLevel warn
  #purge the logs in 7 days = 60*60*24*7
  ErrorLog "|/usr/sbin/rotatelogs -t /app-name/logs/error-log 604800"
@@ -78,7 +71,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
  SetEnvIf jwt-value ".{5}$" jwt-last-5=$0
  LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{user-agent}i\" \"user-id:\" \"%{user-id}i\" \"log-co-relation-id:\" \"%{co-  rel-id}i\" \"browser-id:\" \"%{browser-id}i\" \"jwt:\" \"%{jwt-last-5}e\" %T %D" app-log-format
  CustomLog "|/usr/sbin/rotatelogs -t /app-name/logs/access-log 604800" app-log-format
- ```
+```
 6. **Reverse proxy load balancer:** Our Angular application forwards all http requests to fetch data through API Gateway Proxy. We use *by least busy connection* reverse proxy load balancer algorithm. This always forwards request to least busy server. One drawback of *by least busy connection* is it doesnt ping if server is down, so it still forwards the connection when server is down, but our other reverse proxy infrastructure takes care of high availability.
 ```
  <Proxy balancer://api-gateway-proxy>
