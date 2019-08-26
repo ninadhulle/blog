@@ -129,3 +129,11 @@ We dont want to expose what server we are running, so we disabled Apache Httpd S
  Header unset ETag
  TraceEnable Off
 ```
+7. **Mime Types**
+
+We allow the mime types from default RHEL 7.5 /etc/mime.types file.
+```
+  <IfModule mime_module>
+   TypesConfig /etc/mime.types
+  </IfModule>
+```
