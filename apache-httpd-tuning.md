@@ -86,8 +86,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
   ProxyPassReverse "/api-gateway-proxy" "balancer://api-gateway-proxy"
 ```
 
-7. **Linux OS Optimizations:** We use RHEL 7.5 and below are few optimizations we did to further improve performance.
- * We increased the RHEL 7.5 ulimit - number of process RHEL 7.5 Kernel will allow to be opened to 4096. Default earlier was 1096 but  now it is increased to 4096. This should be changed before starting the server and would need root access.
+7. **Linux ulimit:** We increased the RHEL 7.5 ulimit - number of process RHEL 7.5 Kernel will allow to be opened to 4096. Default earlier was 1096 but  now it is increased to 4096. This should be changed before starting the server and would need root access.
  
 
 
