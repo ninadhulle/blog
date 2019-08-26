@@ -4,7 +4,7 @@ This blog includes few of best practices we followed for Angular application. It
 
 2. [Apache Httpd security configuration](https://github.com/ninadhulle/blog/blob/master/apache-httpd-security.md). 
 
-3. [Apache Httpd performance tuning](https://github.com/ninadhulle/blog/blob/master/apache-httpd-tuning.md). Work in progess.
+3. [Apache Httpd performance tuning](https://github.com/ninadhulle/blog/blob/master/apache-httpd-tuning.md).
 
 4. [REST API request/response best practices we follow](https://github.com/ninadhulle/blog/blob/master/basic-micro-services-api-naming-practises.md).
 
