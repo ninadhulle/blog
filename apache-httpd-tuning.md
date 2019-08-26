@@ -1,27 +1,28 @@
 ### Apache Httpd 2.4 Performance Optimizations ######
 We use [Apache Httpd 2.4](https://httpd.apache.org/docs/2.4/) to run our [Angular](https://angular.io/) application in production. Below are few of common Httpd tuning options which we had done for production.
 
-1. **Multi Processing Module:** As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. Event MPM keepsalive connection and keeps some connections to idle state to server requests faster.
+1. **Multi Processing Module:** As recommended by Apache we use The **Event** Multi-Processing Module [MPM](https://httpd.apache.org/docs/2.4/mod/event.html). This is default processing module and it allows the requests to be passed off to listener threads freeing up the worker threads to server the request. Event MPM keepsalive connection and keeps some connections to idle state to serve requests faster.
 We have 16 core CPU so we set out *ServerLimit* to 16. The calculation is *MaxRequestWorker*=*ServerLimit* x *ThreadsPerChild*
 ```
   <IfModule mpm_event_module>
      ServerLimit         16
      StartServers         2
-     MaxRequestWorkers  400
-     MinSpareThreads     25
-     MaxSpareThreads     75
-     ThreadsPerChild     25
+     MaxRequestWorkers  1600
+     MinSpareThreads     50
+     MaxSpareThreads     150
+     ThreadsPerChild     100
   </IfModule>
 ```
-Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate the requests and get the metrics.
+Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate the requests, you can use those metrics to tune it further.
 ```
  ab -k -c 1000 -n 8000 https://<server>:<port>
 ```
- -k keeps alive the connection similar to browser
- -c concurrent connection
- -n max# of connections
+ * -k keeps alive the connection similar to browser
+ * -c concurrent connection
+ * -n max# of connections
  
-2. **Modules:** Remove unused modules and load only the required minimum modules. We have configured below minimal set of modules to be loaded.
+2. **Modules:** 
+We removed unused modules and load only the required minimum modules. We have configured below minimal set of modules to be loaded. This keeps Apache Httpd light.
 ```
  LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
  LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
@@ -46,14 +47,14 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
 ```
 
 3. **Compression:** 
- Apache Httpd's [mod_deflate](https://httpd.apache.org/docs/2.4/mod/mod_deflate.html) to zip the data when sent to browser. Below configuration enables compression for file extensions. Also we use compression level(*DeflateCompressionLevel*) as 9 as our web CPU is barely utilized due to Single Page Application(SPA) architecture.
+Apache Httpd's [mod_deflate](https://httpd.apache.org/docs/2.4/mod/mod_deflate.html) is used to zip the data when sent to browser. Below configuration enables compression for file extensions. Also we use compression level(*DeflateCompressionLevel*) as 9 as our web CPU is barely utilized due to Single Page Application(SPA) architecture, so we have spare CPU capacity.
 ```
  SetOutputFilter DEFLATE
  SetEnvIfNoCase Request_URI \.(?:exe|t?gz|zip|iso|tar|bz2|sit|rar|png|jpg|gif|jpeg|flv|swf|mp3)$ no-gzip dont-vary
  DeflateCompressionLevel 9
 ```
 
-4. **Caching:** Our application is light weight with very neglible media/content for caching and as we have SPA architecture so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN).
+4. **Caching:** Our application is light weight with very neglible media/content for caching and as we have SPA architecture so we dont use caching or Content Delivery Network (CDN). But for content heavy application it is recommended to use Content Delivery Network (CDN) and Apache Httpd caching for static content.
 ```
  <IfModule mod_headers.c>
   Header set Cache-Control no-cache
@@ -61,7 +62,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
  </IfModule>
 ```
 
-5. **Logging:** We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose.
+5. **Logging:** We use ELK to store all our logs, we have created rolling log files to log errors and access. We also keep logging to bare minimum, only certain headers for debugging is logged. We log only last 5 digits of our JWT for debugging purpose. Keep the logs light and logging bare minimum data helps with performance.
 ```
  LogLevel warn
  #purge the logs in 7 days = 60*60*24*7
@@ -87,7 +88,8 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
 ```
 
 7. **Linux ulimit:** 
-We increased the RHEL 7.5 ulimit - number of process RHEL 7.5 Kernel will allow to be opened to 4096. Default earlier was 1096 but  now it is increased to 4096. This should be changed before starting the server and would need root access.
+We increased the RHEL 7.5 ulimit - number of process RHEL 7.5 Kernel will allow to be opened to 4096. Default earlier was 1096 but now RHEL 7.5 itself has increased to 4096. This should be changed before starting the server and would need root access.
  
-
+8. **Scaling Out:**
+We also have *horizontal scaling* with 3 web servers behind a F5 Load Balancer with similar configuration so that load gets distributed evenly between 3 web servers.
 
