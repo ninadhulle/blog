@@ -87,8 +87,7 @@ Apache Benchmark(ab) tool that comes with Apache Httpd can be used to simulate t
 ```
 
 7. **Linux OS Optimizations:** We use RHEL 7.5 and below are few optimizations we did to further improve performance.
- * Increase - ulimit size 4096
- * Increase write buffer size - /proc/sys/net/core/wmem_max
- * Increase swapiness - /proc/sys/vm/swappiness
+ * We increased the RHEL 7.5 ulimit - number of process RHEL 7.5 Kernel will allow to be opened to 4096. Default earlier was 1096 but  now it is increased to 4096. This should be changed before starting the server and would need root access.
+ 
 
 
